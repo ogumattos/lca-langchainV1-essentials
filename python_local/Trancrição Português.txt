@@ -1,0 +1,323 @@
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_V1_Intro.txt
+=============================================
+
+[00:00:00]
+
+Sydney: Bem-vindo(a) ao LangChain Essentials. Obrigado(a) por se inscrever no curso. Neste curso, você aprenderá a usar o LangChain para construir um aplicativo de agente e, ao longo do caminho, muitos dos blocos de construção básicos disponíveis no LangChain. Mas primeiro, por que usar o LangChain? A biblioteca de código aberto LangChain é uma maneira muito popular de construir aplicativos LLM.
+
+No mês passado, tivemos mais de 80 milhões de downloads e estamos constantemente aprimorando a plataforma. Um grande atrativo para muitos usuários é a independência de modelos. Cada fornecedor de LLM possui uma API exclusiva, e essas APIs são atualizadas com frequência. Com o LangChain, você pode criar seu aplicativo e alternar entre fornecedores e modelos sem precisar reescrever o código. Recentemente, adicionamos um novo agente fácil de usar, que é realmente a peça central deste curso.
+
+Este agente é construído sobre o LangGraph, proporcionando execução durável, persistência e muito mais. O próprio agente foi projetado para ser extremamente flexível. Em particular, ele suporta o que chamamos de middleware. Isso permite que você personalize seu agente para atender às suas necessidades. [00:01:00] Você aprenderá mais sobre isso no curso.
+
+No curso, começaremos com uma aplicação simples baseada em agentes e, em seguida, aprimorá-laemos à medida que explorarmos os recursos do agente e do LangChain. Você aprenderá sobre blocos de construção, como modelos, mensagens, memória e ferramentas. Você usará o agente e o aprimorará com middleware. Isso permitirá adicionar prompts dinâmicos e seleção de modelos, adaptando o prompt e o modelo às mudanças de condições.
+
+Você aprenderá como adicionar código personalizado antes e depois das chamadas de modelo e ferramenta. Você também usará o LangSmith e o Studio, uma ferramenta de visibilidade projetada especificamente para agentes com estado. Vamos começar.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L1_V1_FastAgent.txt
+=============================================
+
+Sydney: [00:00:00] Este curso está dividido em três partes principais. Primeiro, você trabalhará com uma demonstração básica de um agente, criando um agente SQL com apenas algumas linhas de código. Em seguida, falaremos sobre os fundamentos do agente LangChain, como trabalhar com mensagens e streaming de LLMs.
+
+Por fim, falaremos sobre as diversas maneiras de personalizar seu agente. Em particular, usando middleware para adicionar recursos predefinidos ou personalizados. O LangChain está dando mais ênfase aos agentes com o novo agente ReAct. ReAct significa Raciocínio e Ação. Os agentes ReAct operam em um loop. Ele se inicia quando um modelo recebe uma solicitação.
+
+Primeiro, o sistema raciocina sobre o assunto. Em seguida, utiliza ferramentas para agir. As ferramentas fornecem observações. Nesse ponto, o LLM pode raciocinar novamente, determinar se consegue responder à solicitação produzindo um resultado final ou se pode tomar outras medidas e continuar o ciclo de chamadas de ferramentas. Como você verá na demonstração a seguir, esse ciclo pode ser eficaz por muitos [00:01:00] ciclos.
+
+O novo modelo foi construído com o LangGraph por baixo dos panos, que fornece persistência e durabilidade, streaming, interrupções, rastreamento e implantação. A melhor parte do novo agente ReAct é a rapidez com que ele é desenvolvido, como você verá no primeiro laboratório. Aqui está uma breve demonstração deste laboratório. Usaremos este recurso ao longo do curso.
+
+Você criará um agente capaz de explorar o banco de dados Chinook SQL light. Este agente faz parte da Biblioteca da Comunidade LangChain. Você fornecerá ao agente apenas uma ferramenta capaz de executar comandos SQL. O agente deverá descobrir o esquema, programar os comandos SQL e verificar os resultados. Um aspecto interessante a observar é o que acontece quando o modelo gera comandos incorretos.
+
+Ótimo. Vamos começar. Neste primeiro laboratório, vamos construir um agente SQL com apenas algumas linhas de código. Primeiro, vamos começar com a configuração. Estamos importando a abstração de banco de dados SQL da comunidade LangChain e, em seguida, carregando o banco de dados Chinook. Faremos apenas uma pequena configuração [00:02:00] aqui, definindo um contexto de tempo de execução que tenha acesso à nossa instância de banco de dados para que o agente e as ferramentas possam acessar nosso banco de dados.
+
+Agora vamos definir nossa ferramenta execute_sql. Observe que usamos esta função get_runtime para obter as informações do nosso contexto de execução, que inclui o banco de dados. Você pode ver que executamos a consulta e, em seguida, retornamos um erro, se houver.
+
+Em seguida, definimos um prompt do sistema para definir o comportamento do nosso agente. Primeiro, fornecemos algumas instruções gerais e, depois, algumas regras para ajudá-lo a executar corretamente. Observe que uma regra particularmente útil é que, se a ferramenta retornar um erro, pedimos ao modelo para revisar o SQL gerado e tentar novamente.
+
+Muito bem, vamos começar. Vamos criar nosso agente usando a primitiva `create agent` do pacote `LangChain.tagers`. Passamos um modelo, neste caso, o modelo GPT-5 da OpenAI. [00:03:00] Ferramentas, neste caso, apenas nossa ferramenta `execute SQL` definida acima. Nosso prompt de sistema e o esquema de contexto de tempo de execução usado para acessar o banco de dados.
+
+Aqui está uma visão geral básica do loop do agente React. Podemos ver o modelo e as ferramentas em um loop, e o fato de que o modelo pode ser encerrado sempre que terminar de chamar as ferramentas. Muito bem, agora vamos executar algumas consultas. Observe primeiro que o agente não tem acesso ao esquema do banco de dados, então ele precisa descobri-lo de forma independente por meio de consultas SQL.
+
+Isso significa que o agente pode cometer erros. Ao retornar mensagens de erro, o agente pode corrigir suas consultas respondendo a esses erros. Algumas outras observações: vamos invocar o agente com `agent.stream` e, em seguida, usar o comando `pretty print` para exibir as mensagens e o histórico da conversa de forma organizada.
+
+Por fim, o agente não memoriza o esquema entre as invocações. Falaremos sobre como controlar isso mais tarde, com relação à memória. [00:04:00] Muito bem, vamos fazer nossa primeira pergunta. Qual tabela tem o maior número de entradas? Invocamos nosso agente com uma pergunta e estamos imprimindo o histórico da conversa aqui.
+
+Primeiro, vemos uma mensagem humana, que é a nossa pergunta. Em seguida, vemos uma mensagem de IA com a chamada da ferramenta "Executar SQL", que solicita as tabelas disponíveis em nosso banco de dados. Vemos que a ferramenta "Executar SQL" retorna uma lista das tabelas disponíveis. Depois, vemos outra mensagem de IA chamando a ferramenta "Executar SQL". Desta vez, ela lista a contagem de linhas em cada tabela e seleciona a tabela com a maior contagem de linhas.
+
+A mensagem da ferramenta de execução de SQL lista a tabela de faixas da playlist com 8.715 linhas, e então nossa mensagem final de IA torna isso um pouco mais inteligível. Retornando uma frase bem elaborada. Certo, próxima consulta. Qual gênero musical tem, em média, as faixas mais longas? [00:05:00] Invocamos o agente da mesma forma que vemos nossa mensagem humana. Em seguida, uma chamada da ferramenta de execução de SQL. Mas, opa. Parece que temos um erro devido a um SQL inválido. Não existe uma tabela chamada "genders". Novamente, lembremos que o agente não tem acesso ao nosso esquema de banco de dados e não se lembra de quais tabelas temos da consulta anterior.
+
+Agora vemos a próxima mensagem de IA com uma chamada de ferramenta de execução SQL solicitando os nomes das tabelas, depois o resultado da execução SQL e, em seguida, vemos uma consulta bem-sucedida nos gêneros com as faixas mais longas. E então vemos a chamada bem-sucedida da ferramenta de execução SQL na tabela de gêneros com G maiúsculo. O resultado aqui mostra ficção científica e fantasia. E então, novamente, o modelo transforma isso em informações úteis em uma frase final. Vejamos uma última consulta aqui. Vamos apenas pedir ao agente para listar todas as tabelas.
+
+Esta é uma consulta bastante simples. Vemos a mensagem de sucesso da ferramenta com estas tabelas agora [00:06:00] familiares e, em seguida, uma lista resumida. Aqui estão todas as tabelas. Ótimo.
+
+A seguir, tente sua própria consulta. Vamos testar isso no depurador do agente. Bem-vindo ao nosso depurador de agentes. Aqui você pode ver a representação gráfica clássica do nosso agente, com um loop de chamada de modelo e ferramenta.
+
+Agora vamos tentar fazer uma pergunta ao nosso agente.
+
+Muito bem. Podemos ver que o modelo está sendo executado. Ele faz uma chamada de ferramenta. Vemos o resultado da ferramenta e, em seguida, uma mensagem final do modelo também. Então, primeiro perguntamos: você conhece um cliente chamado Frank Harris? O modelo chama a ferramenta "Executar SQL", que retorna um resultado, e então vemos outra chamada de ferramenta do modelo que retorna outro resultado.
+
+Finalmente, nossa resposta nos dá muitas informações sobre Frank Harris. Vamos fazer uma pergunta complementar. [00:07:00]
+
+Muito bem, então perguntamos sobre o histórico de compras recente de Frank Harris. Podemos ver algumas chamadas e execuções de ferramentas. Em seguida, obtemos um resultado final resumindo suas faturas mais recentes e algumas faturas anteriores. Uma das melhores coisas sobre o depurador do agente é que você também pode visualizar as informações no modo de rastreamento.
+
+Vamos analisar nossa segunda consulta. Vemos o modelo sendo executado. Podemos ver as chamadas e respostas da ferramenta em ação, algumas iterações. Você também pode ver o histórico completo à direita. Aqui está o código que você acabou de executar para a próxima seção. Vamos explorar cada um dos elementos deste laboratório.
+
+Isso inclui modelos. Mensagens e prompts, [00:08:00] ferramentas de streaming e contexto de tempo de execução. Também falaremos sobre memória e saídas estruturadas. Vamos começar com os modelos.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L2_V1_Models_And_Messages.txt
+=============================================
+
+Sydney: [00:00:00] Os modelos fornecem o componente de raciocínio no ReAct. Usaremos modelos de chat. Uma das áreas em que a LangChain investe bastante é no suporte a diversos modelos e fornecedores. Atualmente, oferecemos suporte a mais de 100 fornecedores. Existem algumas maneiras diferentes de especificar sua escolha de modelo, como mostrado abaixo.
+
+Nosso novo site de documentação destaca diversas integrações com nossos provedores. Assim, você pode ver os modelos de chat mais comuns e os provedores em destaque, com uma tabela de recursos. Aqui estão todos os modelos de chat que oferecemos suporte.
+
+As mensagens são uma parte crucial do sistema de construção de agentes. Elas funcionam como o sistema de circulação de aplicações com agentes, sendo a forma como os diversos elementos compartilham informações. O LangChain define alguns tipos, que seguem de perto os tipos ou funções utilizados pela maioria dos nossos fornecedores de modelos.
+
+[00:01:00] Aqui está a mensagem do sistema. Normalmente, ela descreve a função básica do nosso agente. Em nosso laboratório, era algo como "você é um analista de SQL, etc., etc.", e então descrevia o que ele faria e a quais comandos deveria se limitar.
+
+Há uma mensagem humana. Muitas vezes, trata-se da solicitação inicial. Também pode ser um feedback necessário ou uma intervenção humana.
+
+Depois, temos a mensagem de IA. Aqui, isso é mostrado fornecendo a ferramenta e uma chamada de ferramenta. As mensagens de IA são quaisquer mensagens que o modelo tenha produzido. A ferramenta responde com uma mensagem de ferramenta que contém o resultado da chamada de ferramenta. E, finalmente, há uma mensagem de IA com o último resultado. É importante entender que essas mensagens não são passadas de nó para nó, mas são armazenadas em um espaço de armazenamento temporário persistente compartilhado por todos os nós.
+
+À medida que os nós são executados, os resultados são armazenados como mensagens nesse bloco de notas temporário. Aqui, o modelo não possui apenas os resultados da ferramenta, mas todo o histórico das transações até o momento. Ele pode consultar a pergunta original, [00:02:00] a chamada da ferramenta e as observações, e finalmente raciocinar sobre elas para produzir um resultado. O resultado final contém a última mensagem de IA do agente, bem como todo o histórico de mensagens anteriores.
+
+A mensagem mais importante é o prompt do sistema. Ele define como seu agente se comporta. Você o fornece ao criar o agente e ele deve ser claro, específico e completo. À medida que os agentes se tornaram mais capazes, os prompts do sistema aumentaram em tamanho e complexidade, tornando o design cuidadoso cada vez mais importante. Ao desenvolver seu prompt, é útil usar avaliações para medir o desempenho e monitoramento para acompanhar as mudanças ao longo do tempo. A LangSmith pode ajudar com ambos.
+
+Agora vamos para o laboratório. Muito bem. Vamos aprender mais sobre mensagens.
+
+As mensagens são a unidade fundamental de contexto para os modelos em LangChain.
+
+Eles representam as entradas e saídas dos modelos, carregando tanto o conteúdo quanto os metadados necessários para representar o estado de uma conversa ao interagir com um LLM. As mensagens, em particular, são muito úteis no LangChain porque são padronizadas entre os provedores [00:03:00], o que permite que os desenvolvedores criem aplicativos com uma variedade de modelos e provedores sem alterar o código.
+
+Primeiro, vamos analisar as mensagens humanas e de IA. Certo, então estamos importando nosso construtor de agentes de langchain.agents, e então langchain_core contém um diretório messages onde podemos importar HumanMessage.
+
+Definimos um agente simples. Com o comando, você é um comediante full stack. Em seguida, invocamos nosso agente com uma mensagem humana, imprimindo o resultado dessa indicação. Vemos: "Ótimo trabalho, obrigado. Estou abastecido de café e código limpo. O front-end está brilhando, o back-end funcionando perfeitamente e meu cache está recém-aquecido."
+
+Claramente, nosso agente está se adaptando muito bem ao comportamento de comediante que instruímos a seguir. Podemos ver que a mensagem mais recente é uma mensagem de IA, como esperado, a mensagem do modelo. E também podemos imprimir o conteúdo do histórico completo de mensagens, acessando-o na chave `result messages`, e vemos nossa mensagem humana, [00:04:00], seguida da mensagem de IA.
+
+O LangChain oferece uma variedade de formatos nos quais os desenvolvedores podem representar mensagens. Há situações em que o LangChain consegue inferir a função a partir do contexto, e uma string simples pode ser suficiente para criar uma mensagem. Nesse caso, essa string é convertida em uma mensagem do sistema internamente.
+
+Da mesma forma, quando invocamos o agente com uma string, esta é convertida em uma mensagem humana internamente. Devo dizer que esses agentes são bastante criativos às vezes. Outra maneira de representar mensagens é por meio de dicionários. Nesse caso, estamos invocando explicitamente o agente com uma mensagem humana.
+
+Então vemos um papel como usuário e o conteúdo da nossa mensagem segue. Outro poema bastante criativo aqui. Existem vários papéis que as mensagens podem assumir. Vimos uma mensagem do sistema, uma mensagem do usuário e uma mensagem com o papel de assistente, que é como uma mensagem de IA.
+
+Certo, vamos criar uma ferramenta para que [00:05:00] nosso agente possa criar algumas mensagens de ferramenta. Especificamente, quando um agente chama ferramentas, após essas ferramentas serem invocadas, recebemos uma resposta de mensagem de ferramenta. Então, vamos dar uma olhada nesta ferramenta chamada check_haiku_lines. Parece que ela verifica o número de linhas no texto recebido e imprime o número de linhas no haicai.
+
+Se o número de linhas não for igual a três, como exigem os haicais, retornamos uma mensagem incorreta; caso contrário, retornamos uma mensagem correta. Aqui, criamos nosso agente, que neste caso é um poeta esportivo, e o invocamos, pedindo que escreva um poema para nós. Podemos ver o resultado dessa chamada da ferramenta de validação.
+
+Verificando nosso haicai, confirmando que ele tem três versos e nos mostrando este belo poema. Podemos ver que o conteúdo da última mensagem são esses três versos e que o comprimento total de nossas mensagens é quatro. Vamos dar uma olhada mais de perto nessas mensagens. Então, se iterarmos sobre todas as mensagens no resultado, [00:06:00] e as formatarmos para facilitar a visualização, podemos ver nossa mensagem inicial, escrita por um humano, pedindo para escrevermos um poema, seguida de uma chamada da ferramenta para verificar os versos do haicai.
+
+Com o haicai como argumento textual, vemos então aquela resposta familiar e a mensagem final da IA ​​com esse haicai.
+
+As mensagens do LangChain contêm muitas informações úteis. Acima, usamos uma formatação amigável para facilitar a visualização, mas vamos analisar mais detalhadamente todas as informações disponíveis nas mensagens.
+
+Então, se olharmos para nossa lista de resultados, veremos uma lista de mensagens: uma mensagem humana, uma mensagem de IA, uma mensagem da ferramenta e, por fim, uma mensagem final de IA. Vamos analisar apenas essa última mensagem de IA. Ela contém muitas informações. Por exemplo, vemos o conteúdo, que é a string principal do haicai, metadados de uso, incluindo entrada e saída, detalhes do token, além de informações de cache para tokens [00:07:00].
+
+e diferenciação baseada em raciocínio e áudio. Também podemos acessar os metadados da resposta, que contêm informações úteis como uso de tokens, provedor do modelo e nome do modelo.
+
+Muito bem, experimente você mesmo agora e vamos aprender sobre streaming.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L3_V1_Streaming.txt
+=============================================
+
+Sydney: [00:00:00] Aplicativos interativos como chatbots ou agentes de atendimento ao cliente podem sofrer com latência muito alta. Para fornecer dados ao usuário assim que estiverem disponíveis, você pode usar streaming. Existem vários modos de streaming frequentemente usados ​​com agentes LangChain. Mensagens e valores são dois dos modos mais usados. O modo Mensagens transmite dados token por token, à medida que os dados são produzidos pelo LLM.
+
+O Values ​​retorna dados após cada etapa. Ou seja, após a etapa de raciocínio, depois a etapa de chamada da ferramenta e assim por diante. Você também pode transmitir dados de ferramentas que você cria e pode transmitir de várias fontes simultaneamente. Vamos ver isso em ação.
+
+Então, vamos importar o agente e criar um novo agente, e usaremos novamente nosso exemplo completo de comediante. Primeiro, podemos simplesmente invocar nosso agente sem streaming usando o comando `dot invoke`. Se fizermos isso, veremos o resultado final aparecer de uma só vez, sem streaming [00:01:00] token por token.
+
+Então, neste caso, pedimos ao nosso agente para nos contar uma piada, e ele diz: "Por que os programadores preferem o modo escuro? Porque a luz atrai insetos." Isso é mais engraçado do que eu imaginava. Muito bem, agora vamos falar sobre streaming. Usamos o modo de streaming de valores nos nossos exemplos até agora. Só para relembrar, o modo de streaming de valores transmite dados após cada etapa no loop do agente.
+
+Então, esperamos ver atualizações após uma chamada de modelo e, em seguida, após uma chamada de ferramenta, em um loop. Vamos transmitir dados do agente com a seguinte solicitação: "Conte-me uma piada de tiozão". Podemos ver que a mensagem humana é enviada na primeira etapa. Em seguida, recebemos uma mensagem de IA de volta com a mesma piada.
+
+Agora vamos dar uma olhada nas mensagens, mensagens em modo de streaming, transmitindo dados token por token, reduzindo a latência ao mínimo possível para o usuário final. Isso é perfeito para aplicativos interativos como chatbots, quando você quer ver o agente progredindo. [00:02:00] Então, aqui vamos invocar nosso agente com o comando de streaming e pedir que ele escreva um poema amigável para nós.
+
+Então vamos acompanhar a chegada desses tokens segundo a segundo.
+
+Certo, parece que nosso poema está chegando. O modo de fluxo de mensagens provavelmente é familiar para quem já usou ferramentas como Chat GPT ou Claude para conversar. Uma das coisas mais legais do LangChain é que você também pode transmitir mensagens de outras ferramentas. Vamos usar o modo de fluxo personalizado para transmitir mensagens de uma ferramenta get_weather.
+
+Aqui, adquirimos nosso gravador de fluxo e podemos transmitir dados arbitrários. Estamos simulando, consultando e adquirindo dados meteorológicos para uma determinada cidade e retornando o resultado. Criamos nosso agente meteorológico básico, um GPT-5 Mini, e transmitimos o resultado para a pergunta: "Qual é a previsão do tempo em São Francisco?". Aqui, vamos transmitir tanto os valores padrão quanto os modos personalizados.
+
+Portanto, devemos esperar atualizações [00:03:00] após cada etapa do agente e também esse fluxo personalizado vindo do gravador de fluxo aqui em cima.
+
+Certo, então vemos nossa mensagem humana inicial chegando. Em seguida, parece que temos nossas atualizações personalizadas aqui, e depois mais atualizações para a lista geral de mensagens do nosso modo de fluxo de valores. Observe que, quando transmitimos com dois modos de fluxo aqui, valores em personalizado, vemos duas consultas emitidas, primeiro com o modo de fluxo e depois com o conteúdo desse fluxo.
+
+Então, temos os valores, os dados das nossas mensagens e, em seguida, os dados personalizados do nosso fluxo de dados personalizado. Também podemos testar isso apenas com o modo personalizado. Certo? Experimente alguns modos diferentes por conta própria, com consultas diferentes. A seguir, vamos aprender mais sobre as ferramentas.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L4_V1_Tools.txt
+=============================================
+
+Sydney: [00:00:00] Muito bem, vamos aprender mais sobre ferramentas. As ferramentas fornecem a parte de ação de um agente ReAct. Seus resultados são observações. Você pode definir suas próprias ferramentas ou usar bibliotecas de ferramentas existentes. Aqui está um exemplo rápido de uma ferramenta de multiplicação que multiplica dois números A e B e retorna os resultados. O LLM usa a descrição de uma ferramenta para decidir quando usá-la e a descrição dos argumentos da ferramenta para determinar o conteúdo da chamada da ferramenta.
+
+A própria função é executada pelo nó da ferramenta.
+
+As ferramentas permitem que os agentes atuem no mundo real. Descrições detalhadas podem ajudar seu agente a descobrir como usar suas ferramentas e como invocá-las de forma eficaz. O LangChain oferece suporte a diversos formatos e conjuntos de ferramentas. Aqui, abordaremos alguns casos comuns, mas consulte nossa documentação para obter mais informações.
+
+Neste exemplo básico, definimos uma calculadora de números reais que realiza operações aritméticas básicas [00:01:00] com números reais. As operações incluem adição, subtração, multiplicação e divisão. Neste exemplo, a string de documentação listada aqui e os tipos de argumentos inferidos a partir da assinatura da função são usados ​​pelo LLM para determinar quando e como chamar a ferramenta.
+
+Vejamos um exemplo. Primeiro, importamos a primitiva `createAgent` e construímos nosso agente matemático. Em seguida, invocamos nosso agente com um problema de matemática. Podemos ver que o agente invoca a ferramenta de calculadora e então produz o resultado.
+
+*Podemos verificar os metadados na observabilidade do LangSmith para ver isso.* Certo, vamos analisar esse rastreamento. Podemos ver que a calculadora de números reais foi chamada. Vamos verificar a aba de metadados para saber mais.
+
+Portanto, a descrição da nossa função aqui foi inferida da string de documentação, e nós [00:02:00] também vemos nossa calculadora de números reais inferida do nome da função. Também vemos os parâmetros com seus tipos inferidos da assinatura. Então A e B são do tipo número, e a operação era qualquer um desses valores.
+
+Também podemos ver que nossa ferramenta de calculadora de números reais foi chamada com esses argumentos.
+
+A descrição da ferramenta pode ter um grande impacto. Pode ser que a ferramenta de calculadora não seja acionada porque, neste caso, as entradas são números inteiros. Portanto, vemos que, antes de a ferramenta de calculadora ser acionada, parece que o LLM está realizando os cálculos por conta própria, sem a ferramenta de calculadora que fornecemos.
+
+Este exemplo usa dois números reais. Mas também não consegue invocar nossa calculadora de números reais. Vamos adicionar uma descrição mais detalhada para melhorar esse comportamento. Embora uma descrição básica seja frequentemente suficiente, o LangChain oferece suporte a descrições aprimoradas. O exemplo [00:03:00] abaixo usa um método. Vamos adicionar uma descrição mais detalhada.
+
+Aqui temos nossa ferramenta de calculadora de números reais. Fornecemos ao LangChain algumas instruções adicionais sobre como analisar as informações da ferramenta. Em primeiro lugar, alteramos o nome da ferramenta para simplesmente "calculadora". Em segundo lugar, adicionamos o argumento "Analisar string de documentação igual a verdadeiro", o que significa que vamos analisar as descrições de argumentos no estilo do Google presentes na string de documentação e anexá-las aos metadados passados ​​para o LLM que descreve a estrutura da ferramenta.
+
+Por fim, adicionamos um argumento de descrição que substitui a descrição extraída do fluxo de documentação. Além disso, configuramos o sistema para usar essa ferramenta sempre que houver operações com números, mesmo que sejam inteiros. Nesse caso, criamos nosso agente e o invocamos com a mesma pergunta. Observamos que, nesse caso, a ferramenta de calculadora é acionada.
+
+Agora vamos voltar aqui. Vamos verificar nosso rastreamento para ver a descrição da ferramenta [00:04:00]. Certo, vamos dar uma olhada neste segundo rastreamento. Aqui podemos ver que a ferramenta calculadora foi chamada com esses argumentos, como esperado. E vamos dar uma olhada nos metadados da ferramenta.
+
+Neste caso, a descrição foi como especificamos no decorador da ferramenta; o nome da ferramenta é calculadora, também especificado no decorador da ferramenta. Por fim, as descrições dos parâmetros foram inferidas da docstring e os tipos da assinatura. Muito bem, e por último, agora vamos ver se invocamos nosso agente com nossa pergunta três vezes quatro.
+
+Agora, invocamos a ferramenta de calculadora para esse cálculo e obtemos o resultado correto. Muito bem, sinta-se à vontade para experimentar suas próprias ferramentas aqui. Em seguida, aprenderemos sobre como chamar ferramentas com o MCP.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L5_V1_Tools_w_MCP.txt
+=============================================
+
+Sydney: [00:00:00] O MCP, ou Protocolo de Contexto de Modelo, cria uma interface padrão aberta entre ferramentas e outros aplicativos. A operação básica é semelhante ao fluxo de ferramentas padrão no LangChain. O modelo recebe uma descrição da ferramenta como antes, mas agora isso é feito por meio de sinalização com o servidor MCP para obter as descrições. E, em vez de executar a ferramenta no nó da ferramenta, a execução ocorre no servidor MCP quando solicitada pelo agente.
+
+Muito bem, vamos dar uma olhada no MCP no laboratório. O Model Context Protocol (MCP) fornece uma maneira padronizada de conectar agentes de IA a ferramentas e fontes de dados externas. Vamos nos conectar a um servidor MCP usando os adaptadores MCP do LangChain. Primeiro, importamos o cliente MCP multi-servidor dos adaptadores MCP do LangChain.
+
+Em seguida, estabelecemos nosso cliente com um servidor de tempo. Ele usa E/S padrão para transporte e se conecta a este servidor de tempo MCP aberto. [00:01:00] Depois, carregamos nossas ferramentas MCP, das quais podemos ver que temos cinco ferramentas disponíveis, todas relacionadas a tempo e operações de tempo. E então vamos criar um agente com essas ferramentas MCP. Criamos nosso agente passando as ferramentas MCP, e agora podemos perguntar sobre a hora atual em São Francisco.
+
+Então, chamamos nosso agente com `ainvoke`. Usamos `async` aqui porque estamos nos comunicando com o servidor e perguntamos qual é a hora atual. Certo, carregamos cinco ferramentas do MCP: adicionar hora, comparar hora, converter fuso horário, hora atual e hora relativa. Agora vamos criar um agente com essas ferramentas de tempo fornecidas pelo MCP.
+
+Finalmente, vamos perguntar sobre a hora atual em São Francisco. Vemos nossa mensagem humana. Em seguida, uma chamada à ferramenta de hora atual usando o fuso horário da América, Los Angeles. Presumo que isso seja inferido da nossa consulta a São Francisco, e um formato específico. Então, obtemos o resultado da hora atual [00:02:00] e nosso modelo formata isso muito bem para 12:25, horário do Pacífico, em 8 de outubro.
+
+Em seguida, vamos aprender sobre memória para agentes.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L6_V1_Memory.txt
+=============================================
+
+Palestrante: [00:00:00] Você deve ter notado que, ao usar o agente, ele não se lembrava das solicitações anteriores. Podemos corrigir isso adicionando memória ao nosso sistema, que já está integrada aos agentes LangChain por meio do LangGraph. A memória persistirá as mensagens e o estado entre as chamadas ao agente. Vamos dedicar alguns minutos para falar também sobre o contexto de tempo de execução, que usaremos em nosso laboratório de memória.
+
+O agente de criação do LangChain é executado internamente no ambiente de execução do LangGraph. O LangGraph expõe um objeto de ambiente de execução com as seguintes informações: Contexto, que são informações estáticas como ID do usuário, conexões de banco de dados ou outras dependências que você deseja injetar para indicar o agente. O ambiente de execução também possui um armazenamento, que é uma instância de armazenamento base que pode ser usada para memória de longo prazo.
+
+Hoje vamos abordar a memória de curto prazo por meio de checkpoints, mas esta é outra ótima ferramenta para conversas de longa duração. Por fim, o objeto de tempo de execução expõe o gravador de fluxo que vimos na lição sobre o modo de streaming personalizado [00:01:00]. Você pode acessar informações de tempo de execução em ferramentas, bem como por meio de middleware de agente personalizado.
+
+Em nosso exemplo de memória, usaremos o ambiente de execução para injetar nossa dependência de banco de dados. Vamos revisar como acessar o contexto de execução. Primeiro, você especifica um esquema de contexto. Isso define a estrutura do contexto armazenado no ambiente de execução do agente. Em seguida, você fornece o esquema ao agente. Em uma chamada de ferramenta, você pode usar a função `get` do ambiente de execução para obter esse contexto e acessar, neste caso, o banco de dados.
+
+Por fim, ao invocar o agente, você deve fornecer o banco de dados ou outro contexto relevante no argumento `context`. Este é um mecanismo geral que pode ser usado para passar informações estáticas de tempo de execução para ferramentas, prompts e muito mais. Muito bem, com isso, vamos explorar nosso laboratório de memória.
+
+Portanto, a memória é muito importante para os agentes, especialmente aqueles que participam de conversas longas que podem ser interrompidas ou pausadas. Você [00:02:00] quer que seus agentes se lembrem de informações anteriores sobre o estado da conversa para que você possa ter interações produtivas. Assim, a forma como suportamos a memória no LangChain permite que ela seja de curto ou longo prazo.
+
+Hoje vamos falar sobre memória de curto prazo, que se manifesta na persistência de mensagens ou do estado do agente entre invocações do mesmo. Usaremos uma configuração já conhecida, conectando-nos ao nosso banco de dados Chinook e especificando esse contexto de execução com nossa instância de banco de dados. Definimos nossa ferramenta de execução SQL, que acessa o banco de dados, executa consultas e captura quaisquer erros.
+
+Definimos um prompt do sistema. Lembrando novamente que, se a ferramenta retornar um erro, devemos revisar a consulta SQL. Também é importante lembrar que nosso agente não possui nenhum conhecimento intrínseco do esquema do banco de dados baseado apenas no prompt do sistema. Portanto, ele precisará descobrir o esquema conforme necessário. Muito bem.
+
+Aqui criamos nosso agente. Estamos usando o GPT cinco com nossa ferramenta de execução de SQL, o prompt e nosso contexto de tempo de execução [00:03:00]. Vamos executar nossa primeira consulta. Dizemos: "Aqui é Frank Harris. Qual foi o total da minha última fatura?"
+
+Os resultados são os seguintes: vemos a primeira mensagem humana e, como esperado, uma chamada da ferramenta de execução de SQL que nos fornece mais informações sobre as tabelas de faturas que podemos querer consultar. Vemos outra chamada da ferramenta de execução de SQL. Aqui está o resultado. E então vemos que a fatura mais recente totalizou 5,94 para Frank Harris.
+
+Muito bem, vamos lembrar que ainda não habilitamos a memória de curto prazo para o nosso agente. Vamos ver o que acontece com consultas repetidas. Primeiro, perguntamos: "Este é Frank Harris. Qual foi o total da minha última fatura?" Vemos essa interação se desenrolar com duas chamadas da ferramenta "Executar SQL" e um resultado final: a última fatura de Frank Harris totalizou impressionantes US$ 5,94.
+
+Agora, vamos fazer uma pergunta complementar. Quais eram os títulos? Acho que está implícito que se trata daquela fatura. Invocamos o agente, e ele fica bastante confuso. Ele realmente não sabe o que estamos perguntando. Agora, vamos resolver esse problema adicionando memória de curto prazo ao nosso agente, para que ele possa se lembrar do histórico da conversa entre as invocações.
+
+Certo, então vamos importar a memória de checkpoint do LangGraph, importando o economizador de memória. Isso nos ajudará a adicionar checkpoints, que é uma forma de memória de curto prazo, ao nosso agente. Há um ponto importante a observar aqui. Agora, quando invocamos nosso agente, passamos este parâmetro de configuração, o ID da thread. Isso garante que possamos rastrear o estado em uma determinada thread.
+
+Uma thread é como uma conversa. Então, invocamos nosso agente com nossa primeira pergunta e vemos o mesmo resultado esperado: a fatura 3 74 tinha um total de 5 94. Agora, vejamos nossas perguntas de acompanhamento. Perguntamos quais eram os títulos. Lembre-se de que estamos fazendo isso na primeira thread de conversa [00:05:00] e vemos, surpreendentemente, que o agente se lembra da conversa anterior.
+
+Então, vemos uma chamada de ferramenta de execução SQL e, em seguida, os títulos daquela fatura específica. Além disso, temos um bom resumo da nossa mensagem final de IA. A memória é essencial ao criar agentes; experimente suas próprias consultas com a memória integrada aqui. Muito bem, a seguir, vamos analisar a saída estruturada.
+
+
+
+=============================================
+Arquivo: LCA_LC_Essentials_Python_M1_L7_V1_StructuredOutput.txt
+=============================================
+
+Palestrante: [00:00:00] Uma das funcionalidades mais poderosas do agente integrado do LangChain é a sua capacidade de gerar saídas estruturadas. Para que os agentes possam interagir com sistemas computacionais existentes, é essencial que consigam produzir dados em formatos definidos. Vamos ver como isso é feito no laboratório. Muito bem. Neste laboratório, vamos experimentar como os agentes podem gerar saídas estruturadas.
+
+Neste caso específico, gostaríamos que nosso agente gerasse informações de contato estruturadas a partir de uma conversa gravada. Portanto, criamos um agente simples com um formato de resposta especificado como nosso TypedDict de informações de contato. Simulamos uma conversa gravada com as informações de contato de John Doe incorporadas ao texto.
+
+Vamos invocar nosso agente e verificar se a resposta estruturada anexada ao resultado final corresponde à estrutura do TypedDict de informações de contato que definimos acima. Em Python, os agentes suportam vários tipos de dados para seus tipos de saída estruturada. Isso inclui modelos base do Pydantic [00:01:00], TypedDicts, classes de dados e dicionários de esquema JSON brutos.
+
+Vejamos outro exemplo. Desta vez, definimos as informações de contato como um modelo base do Pydantic, criamos nosso agente e o invocamos com o mesmo prompt. E vemos que nossa resposta estruturada, neste caso, assume a forma de uma instância de informações de contato com nome, e-mail e número de telefone validados. Em seguida, vamos abordar a alteração dinâmica de prompts.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L8_V1_Dynamic_Prompt.txt
+=============================================
+
+Palestrante: [00:00:00] Muito bem, parabéns. Neste ponto, você aprendeu bastante sobre os recursos mais básicos de um agente, e um agente desse tipo é muito capaz de resolver diversos problemas. No entanto, se você descobriu que o agente padrão criado não atende às suas necessidades, é muito fácil personalizá-lo. Vamos falar sobre personalização por meio de middleware, prompts dinâmicos e interação humana.
+
+O middleware permite inserir códigos específicos do seu agente em pontos-chave do loop de reação. O LangChain oferece dois tipos principais de hooks: hooks de nó, mostrados em roxo, e hooks de interceptação, mostrados envolvendo os nós em branco. Casos de uso comuns para esses hooks incluem sumarização, mecanismos de proteção, prompts dinâmicos e novas tentativas de ferramentas.
+
+Em um laboratório futuro, você verá como usar wrappers de chamadas de modelo para escolher prompts dinamicamente e também como usar o gancho `after model` para adicionar intervenção humana ou mecanismos de proteção a um fluxo de agentes.
+
+Vamos analisar a seleção dinâmica de prompts. À medida que o escopo e a duração das tarefas e os agentes podem [00:01:00] lidar aumentam, o prompt deve se expandir para abranger todas as fases, etapas e contingências de uma tarefa.
+
+Você pode resolver isso com prompts dinâmicos. Os prompts podem ser selecionados instantaneamente usando o contexto de tempo de execução ou o estado atual do agente. Vamos ver isso em ação. Muito bem, vamos dar uma olhada nos prompts dinâmicos. Conectamos ao nosso conhecido banco de dados Chinook e definimos um contexto de tempo de execução. Desta vez com este sinalizador adicional `is_employee`.
+
+Definimos nossa ferramenta de execução de SQL e, desta vez, estamos definindo um modelo de prompt do sistema. Neste caso, é o mesmo que nossos prompts de sistema anteriores, com a adição de limites de tabela. Vamos preencher os limites de acesso à tabela com base no indicador de funcionário do nosso contexto de tempo de execução. Muito bem, vamos definir nossa função de prompt de sistema dinâmico.
+
+Neste caso, se o usuário do nosso aplicativo não for um funcionário, queremos adicionar alguns limites de tabela. Especificamente, estamos restringindo o acesso a essas tabelas. Se o usuário for um funcionário, não especificamos nenhum limite de tabela. Então, esta função retorna o modelo de prompt do sistema formatado com os limites de tabela mencionados.
+
+Observe que este decorador transforma esta função em um middleware de prompt dinâmico. Assim, aqui embaixo, quando usamos `create agent` para construir nosso agente, podemos passar essa função de prompt dinâmico do sistema diretamente para o argumento do middleware. Todo o resto é basicamente igual. Aqui definimos nosso modelo, ferramentas e o esquema do contexto de tempo de execução.
+
+Vamos começar com a primeira pergunta. Qual foi a compra mais cara feita por Frank Harris? Neste caso, invocamos nosso agente com o sinalizador is_employee definido como falso. Observe que vemos a mensagem humana. Em seguida, o modelo retorna com uma mensagem informando que não consegue acessar as tabelas necessárias para responder à nossa pergunta. [00:03:00]
+
+Vamos tentar novamente. Com diferentes níveis de permissão de acesso. Ainda fazemos a mesma pergunta, desta vez com a flag `is_employee` definida como verdadeira. Veja só. Nosso modelo responde à nossa pergunta. Então, temos a mensagem do usuário no início, seguida por uma série de duas chamadas e respostas da ferramenta `execute SQL`. E, por fim, nossa mensagem final nos informa que a compra mais cara feita por Frank Harris foi de 1386 dólares, lá em 2010.
+
+Ótimo. Vamos começar com nossa última lição: o ser humano no processo.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L9_V1_HITL.txt
+=============================================
+
+Sydney: [00:00:00] Muitas vezes, os agentes precisam de intervenção humana para resolver situações. Isso pode ser feito por meio do recurso "humano no circuito". Ao definir um agente, você pode especificar em quais chamadas de ferramentas deseja receber feedback humano. Quando uma dessas ferramentas é chamada, uma interrupção é gerada, solicitando uma resposta humana. Você pode configurar várias respostas permitidas, como aprovações, rejeições e até mesmo permitir edições.
+
+Vamos ao laboratório e experimentar. Bem-vindo ao seu laboratório final, interação humana com middleware. Primeiro, nos conectamos ao banco de dados Chinook, definimos nosso contexto de execução e nossa ferramenta de execução SQL. Definimos aqui nosso prompt de sistema. Em seguida, usamos a primitiva Criar Agente para criar um agente com middleware de interação humana.
+
+Este middleware permite que você especifique certas ferramentas que deseja interromper. Neste caso, nossa ferramenta Executar SQL, e você [00:01:00] pode especificar um conjunto de decisões permitidas. Neste caso, queremos que nosso operador humano possa aprovar ou rejeitar chamadas da ferramenta Executar SQL. Em outros casos, você também pode permitir edições.
+
+Vamos perguntar: quais são os nomes de todos os funcionários? Observe que estamos fazendo isso em uma thread para que possamos controlar os pontos de verificação quando o loop for interrompido. Invocamos o agente com nossa pergunta e verificamos a presença dessa chave de interrupção no resultado. Sempre que houver uma chave de interrupção, podemos retomar a execução com base em determinadas decisões.
+
+Então, para este primeiro caso, vamos rejeitar a chamada da ferramenta com a mensagem de que o banco de dados está offline, como justificativa. Vejamos como essa saída se parece. Vemos uma interrupção. A execução da ferramenta requer aprovação. Em seguida, vemos a resposta impressa do modelo. Parece que o banco de dados está offline. Tente novamente mais tarde. Esse é o conteúdo da última mensagem de IA. [00:02:00]
+
+Vamos tentar novamente. Desta vez, vamos aprovar todas as chamadas de ferramentas recebidas.
+
+Com a mesma configuração, verificando a tecla de interrupção, vemos o resultado. Primeiro, vemos uma interrupção. A execução da ferramenta requer aprovação. E então vemos outra interrupção.
+
+Agora vamos ver como isso se parece no histórico de mensagens. Primeiro, temos nossa mensagem humana. Em seguida, parece haver duas chamadas da ferramenta de execução de SQL, o que faz sentido considerando as duas interrupções acima, e então o resultado final. Aqui está. Parece que o modelo está resumindo isso para nós de uma maneira clara e até perguntando se queremos obter mais informações.
+
+Parabéns por concluir o último laboratório. Agora vamos finalizar este curso.
+
+
+
+=============================================
+Arquivo: LCA_LCEssentials_Python_M1_L10_V1_Conclusion.txt
+=============================================
+
+Sydney: [00:00:00] Parabéns! Agora você está pronto para usar esses Fundamentos do LangChain e criar seus próprios aplicativos. Você aprendeu a criar e invocar um agente com a primitiva Criar Agente e a usá-lo para se comunicar com um banco de dados SQL. Você está familiarizado com mensagens e como elas são usadas para se comunicar com elementos do sistema. Você usou streaming para baixa latência, criou ferramentas e se comunicou com servidores MCP.
+
+Você aprendeu sobre middleware e o utilizou para estender seu agente. Talvez o mais importante seja que você aprendeu que criar um agente poderoso é mais fácil do que nunca com o Create Agent. Há uma cópia do SQL Agent com alguns dos recursos que você adicionou disponível no depurador. Você pode conferir.
+
+Se você quiser aprender mais, há ótimos documentos e referências listados na página de recursos. Estou muito ansioso para ver o que você vai criar.
+
+
